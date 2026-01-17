@@ -8,10 +8,11 @@ const MedicineList = ({
   medicines, 
   onDetailsClick, 
   onSetReminder, 
-  isLoading, 
-  error,
+  isLoading = false, 
+  error = null,
   searchTerm = '' 
 }) => {
+  // Loading state - show spinner
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -20,13 +21,15 @@ const MedicineList = ({
     );
   }
 
+  // Error state - show error message
   if (error) {
     return (
       <Alert type="error" message={`Error loading medicines: ${error}`} />
     );
   }
 
-  if (!medicines || medicines.length === 0) {
+  // Validate medicines array
+  if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
     return (
       <EmptyState 
         title="No Medicines Found" 
@@ -40,17 +43,21 @@ const MedicineList = ({
   }
 
   // Filter medicines based on search term if provided
-  const filteredMedicines = searchTerm 
-    ? medicines.filter(medicine => 
-        medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (medicine.activeIngredients && 
-         medicine.activeIngredients.some(ingredient => 
-           ingredient.toLowerCase().includes(searchTerm.toLowerCase())
-         )
-        )
-      )
+  const filteredMedicines = searchTerm && typeof searchTerm === 'string'
+    ? medicines.filter(medicine => {
+        if (!medicine || !medicine.name) return false;
+        const matchesName = medicine.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const hasIngredients = medicine.activeIngredients && Array.isArray(medicine.activeIngredients);
+        const matchesIngredients = hasIngredients 
+          ? medicine.activeIngredients.some(ingredient => 
+              ingredient && ingredient.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          : false;
+        return matchesName || matchesIngredients;
+      })
     : medicines;
 
+  // Handle no search results
   if (filteredMedicines.length === 0) {
     return (
       <EmptyState 
@@ -60,6 +67,7 @@ const MedicineList = ({
     );
   }
 
+  // Render medicine list with validation
   return (
     <div className="medicine-list space-y-4">
       <div className="mb-4">
@@ -69,14 +77,20 @@ const MedicineList = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredMedicines.map((medicine) => (
-          <MedicineCard
-            key={medicine.id}
-            medicine={medicine}
-            onDetailsClick={onDetailsClick}
-            onSetReminder={onSetReminder}
-          />
-        ))}
+        {filteredMedicines.map((medicine) => {
+          // Skip invalid medicine entries
+          if (!medicine || !medicine.id || !medicine.name) {
+            return null;
+          }
+          return (
+            <MedicineCard
+              key={medicine.id}
+              medicine={medicine}
+              onDetailsClick={onDetailsClick}
+              onSetReminder={onSetReminder}
+            />
+          );
+        })}
       </div>
     </div>
   );

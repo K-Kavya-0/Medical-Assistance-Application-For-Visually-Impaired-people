@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppData } from '../../contexts/AppDataContext';
 import useAccessibility from '../../hooks/useAccessibility';
+import EmergencyButton from '../../components/common/EmergencyButton';
 import MedicineInteractionChecker from '../../components/medicine/MedicineInteractionChecker';
 
 const MedicineDetailPage = () => {
@@ -811,6 +812,12 @@ const MedicineDetailPage = () => {
           </ul>
         </div>
       </div>
+
+      {/* Emergency Call Button */}
+      <EmergencyButton 
+        helplineNumber="+1-911"
+        displayNumber="911"
+      />
     </div>
   );
 };

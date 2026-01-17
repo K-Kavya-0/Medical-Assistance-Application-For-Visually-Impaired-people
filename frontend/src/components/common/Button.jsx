@@ -1,6 +1,7 @@
 import React from 'react';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../utils';
+import { useAccessibilitySettings } from '../../contexts/AccessibilitySettingsContext';
 
 // Define button variants using CVA (Class Variance Authority)
 const buttonVariants = cva(
@@ -85,12 +86,31 @@ const buttonVariants = cva(
 );
 
 const Button = React.forwardRef(
-  ({ className, variant, size, fullWidth, isLoading, children, ...props }, ref) => {
+  ({ className, variant, size, fullWidth, isLoading, children, ariaLabel, ...props }, ref) => {
+    const { highContrast, reduceMotion } = useAccessibilitySettings();
+
+    const buttonStyle = {
+      ...props.style,
+      padding: '12px 20px',
+      fontSize: '18px',
+      ...(highContrast && {
+        border: '2px solid #000000',
+        backgroundColor: variant === 'primary' ? '#0000ff' : '#ffffff',
+        color: variant === 'primary' ? '#ffffff' : '#000000',
+      }),
+      ...(reduceMotion && {
+        transition: 'none'
+      })
+    };
+
     return (
       <button
         className={cn(buttonVariants({ variant, size, fullWidth }), className)}
         ref={ref}
         disabled={isLoading || props.disabled}
+        aria-label={ariaLabel || props['aria-label']}
+        aria-disabled={isLoading || props.disabled}
+        style={buttonStyle}
         {...props}
       >
         {isLoading && (
@@ -99,6 +119,7 @@ const Button = React.forwardRef(
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <circle
               className="opacity-25"

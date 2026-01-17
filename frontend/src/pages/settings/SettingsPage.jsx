@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useVoiceFeedback } from '../../contexts/VoiceFeedbackContext';
 import useAccessibility from '../../hooks/useAccessibility';
+import EmergencyButton from '../../components/common/EmergencyButton';
 
 const SettingsPage = () => {
   const [settings, setSettings] = useState({
@@ -923,6 +924,12 @@ const SettingsPage = () => {
             <li tabIndex="0">Press Alt+S to jump to settings navigation</li>
           </ul>
         </div>
+
+        {/* Emergency Call Button */}
+        <EmergencyButton 
+          helplineNumber="+1-911"
+          displayNumber="911"
+        />
       </div>
     </div>
   );

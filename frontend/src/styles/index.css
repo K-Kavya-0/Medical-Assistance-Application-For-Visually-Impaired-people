@@ -17,12 +17,14 @@ body {
   min-height: 100vh;
   background-color: #f9fafb;
   width: 100%;
+  font-size: 20px;
 }
 
 .App {
   min-height: 100vh;
   background-color: #f9fafb;
   width: 100%;
+  font-size: 20px;
 }
 
 /* Ensure content is visible even if components fail */

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppData } from '../../contexts/AppDataContext';
 import useAccessibility from '../../hooks/useAccessibility';
+import { useAccessibilitySettings } from '../../contexts/AccessibilitySettingsContext';
+import EmergencyButton from '../../components/common/EmergencyButton';
 
 const HomePage = () => {
   const { state, actions } = useAppData();
@@ -9,6 +11,7 @@ const HomePage = () => {
   const [announcedText, setAnnouncedText] = useState('');
   const [activeSection, setActiveSection] = useState('overview');
   const { speak } = useAccessibility();
+  const { fontSizeMultiplier, highContrast } = useAccessibilitySettings();
   const mainRef = useRef(null);
   const skipLinkRef = useRef(null);
 
@@ -132,6 +135,16 @@ const HomePage = () => {
       color: "#f59e0b",
       bgColor: "#fef3c7",
       shortcut: "Alt+E"
+    },
+    {
+      id: 5,
+      title: "Profile",
+      description: "Manage your personal information",
+      icon: "👤",
+      link: "/profile",
+      color: "#ef4444",
+      bgColor: "#fee2e2",
+      shortcut: "Alt+P"
     }
   ];
 
@@ -160,14 +173,6 @@ const HomePage = () => {
       color: "#ea580c",
       bgColor: "#fed7aa",
       description: "Scheduled doses for today"
-    },
-    {
-      id: 4,
-      title: "Expired",
-      value: state.stats.expired,
-      color: "#be185d",
-      bgColor: "#fbcfe8",
-      description: "Medicines that have expired"
     }
   ];
 
@@ -180,11 +185,14 @@ const HomePage = () => {
   return (
     <div 
       style={{ 
-        backgroundColor: '#f0f9ff', 
+        backgroundColor: highContrast ? '#ffffff' : '#f0f9ff', 
         minHeight: '100vh', 
         padding: '20px',
         fontFamily: 'Arial, sans-serif',
-        lineHeight: '1.6'
+        fontSize: `${fontSizeMultiplier * 16}px`,
+        lineHeight: '1.6',
+        margin: '0 auto',
+        maxWidth: '1200px'
       }}
       onKeyDown={handleKeyDown}
       tabIndex="-1"
@@ -209,11 +217,12 @@ const HomePage = () => {
           e.target.style.width = 'auto';
           e.target.style.height = 'auto';
           e.target.style.overflow = 'visible';
-          e.target.style.backgroundColor = '#3b82f6';
-          e.target.style.color = 'white';
+          e.target.style.backgroundColor = highContrast ? '#000000' : '#3b82f6';
+          e.target.style.color = highContrast ? '#ffffff' : 'white';
           e.target.style.padding = '10px';
           e.target.style.borderRadius = '4px';
           e.target.style.zIndex = 1000;
+          e.target.style.border = highContrast ? '2px solid #ffffff' : 'none';
         }}
         onBlur={(e) => {
           e.target.style.position = 'absolute';
@@ -244,188 +253,107 @@ const HomePage = () => {
       <div 
         id="main-content"
         style={{ 
-          maxWidth: '1000px', 
+          maxWidth: '1200px', 
           margin: '0 auto',
           backgroundColor: 'white',
-          borderRadius: '8px',
+          borderRadius: '12px',
           padding: '30px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          border: '4px solid #3b82f6'
+          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+          border: highContrast ? '4px solid #000000' : '4px solid #3b82f6'
         }}
         ref={skipLinkRef}
         tabIndex="-1"
       >
-        <header style={{ textAlign: 'center', marginBottom: '30px' }}>
+        {/* Header Section */}
+        <header style={{ textAlign: 'center', marginBottom: '40px', padding: '20px' }}>
           <h1 
             style={{ 
-              fontSize: '36px', 
-              fontWeight: 'bold', 
-              color: '#1e40af',
-              marginBottom: '10px',
-              borderBottom: '4px solid #3b82f6',
-              paddingBottom: '10px'
+              fontSize: `${fontSizeMultiplier * 44}px`, 
+              fontWeight: '800', 
+              color: highContrast ? '#000000' : '#1e40af',
+              marginBottom: '15px',
+              borderBottom: highContrast ? '6px solid #000000' : '6px solid #3b82f6',
+              paddingBottom: '15px',
+              paddingTop: '10px',
+              textShadow: highContrast ? 'none' : '1px 1px 2px rgba(0,0,0,0.1)'
             }}
             tabIndex="0"
+            aria-label="Medical Assistant Dashboard"
           >
-            Medical Assistant
+            🏥 Medical Assistant
           </h1>
-          <p 
-            style={{ 
-              fontSize: '22px', 
-              color: '#4b5563',
-              marginBottom: '5px'
-            }}
-            tabIndex="0"
-          >
-            {currentTime.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </p>
-          <p 
-            style={{ 
-              fontSize: '18px', 
-              color: '#6b7280' 
-            }}
-            tabIndex="0"
-          >
-            {currentTime.toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </p>
-        </header>
-
-        {/* Keyboard Shortcuts Info */}
-        <section style={{ 
-          marginBottom: '25px', 
-          padding: '20px', 
-          backgroundColor: '#e0f2fe', 
-          border: '3px solid #0ea5e9',
-          borderRadius: '8px' 
-        }}>
-          <h2 
-            style={{ 
-              fontSize: '18px', 
-              fontWeight: '600', 
-              color: '#0284c7',
-              marginBottom: '10px'
-            }}
-            tabIndex="0"
-          >
-            Keyboard Shortcuts: 
-            <span style={{ fontSize: '16px', fontWeight: 'normal', display: 'block', marginTop: '5px' }}>
-              Alt+O (Overview) • Alt+Q (Quick Actions) • Alt+R (Reminders) • Alt+E (Emergency)
-            </span>
-          </h2>
-        </section>
-
-        {/* Stats Cards */}
-        <section 
-          id="overview-section"
-          style={{ marginBottom: '30px' }}
-          aria-labelledby="overview-heading"
-          tabIndex="-1"
-        >
-          <h2 
-            id="overview-heading"
-            style={{ 
-              fontSize: '26px', 
-              fontWeight: '600', 
-              color: '#374151',
-              marginBottom: '20px',
-              borderBottom: '4px solid #60a5fa',
-              paddingBottom: '5px',
-              display: 'flex',
-              alignItems: 'center'
-            }}
-            tabIndex="0"
-          >
-            <span style={{ fontSize: '32px', marginRight: '10px' }}>📊</span>
-            Today's Overview
-            <button
-              onClick={() => {
-                setActiveSection('overview');
-                announce('Overview section activated');
-              }}
-              style={{
-                marginLeft: 'auto',
-                padding: '8px 15px',
-                backgroundColor: '#60a5fa',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer'
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '30px',
+            flexWrap: 'wrap'
+          }}>
+            <p 
+              style={{ 
+                fontSize: `${fontSizeMultiplier * 26}px`, 
+                color: highContrast ? '#000000' : '#4b5563',
+                marginBottom: '0',
+                fontWeight: '600'
               }}
               tabIndex="0"
-              aria-label="Jump to overview section"
+              aria-label={`Today is ${currentTime.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}`}
             >
-              Jump
-            </button>
-          </h2>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', 
-            gap: '25px' 
-          }}>
-            {statsCards.map((stat) => (
-              <div 
-                key={stat.id}
-                role="region"
-                aria-labelledby={`stat-title-${stat.id}`}
-                style={{
-                  padding: '30px',
-                  backgroundColor: stat.bgColor,
-                  border: `4px solid ${stat.color}`,
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  transition: 'transform 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <div 
-                  id={`stat-title-${stat.id}`}
-                  style={{ fontSize: '36px', fontWeight: 'bold', color: stat.color, marginBottom: '12px' }}
-                >
-                  {stat.value}
-                </div>
-                <div style={{ color: stat.color, fontWeight: '600', fontSize: '20px', marginBottom: '8px' }}>
-                  {stat.title}
-                </div>
-                <div style={{ color: stat.color, fontSize: '16px' }}>
-                  {stat.description}
-                </div>
-              </div>
-            ))}
+              📅 {currentTime.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+            <p 
+              style={{ 
+                fontSize: `${fontSizeMultiplier * 22}px`, 
+                color: highContrast ? '#000000' : '#6b7280',
+                marginBottom: '0',
+                fontWeight: '500'
+              }}
+              tabIndex="0"
+              aria-label={`Current time is ${currentTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}`}
+            >
+              🕐 {currentTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </p>
           </div>
-        </section>
+        </header>
 
-        {/* Quick Actions */}
+        {/* Quick Actions Grid */}
         <section 
           id="quick-actions-section"
-          style={{ marginBottom: '30px' }}
+          style={{ marginBottom: '40px' }}
           aria-labelledby="quick-actions-heading"
           tabIndex="-1"
         >
           <h2 
             id="quick-actions-heading"
             style={{ 
-              fontSize: '26px', 
-              fontWeight: '600', 
-              color: '#374151',
-              marginBottom: '20px',
-              borderBottom: '4px solid #60a5fa',
-              paddingBottom: '5px',
+              fontSize: `${fontSizeMultiplier * 30}px`, 
+              fontWeight: '700', 
+              color: highContrast ? '#000000' : '#1f2937',
+              marginBottom: '25px',
+              borderBottom: highContrast ? '4px solid #000000' : '4px solid #60a5fa',
+              paddingBottom: '10px',
               display: 'flex',
               alignItems: 'center'
             }}
             tabIndex="0"
           >
-            <span style={{ fontSize: '32px', marginRight: '10px' }}>⚡</span>
+            <span style={{ fontSize: `${fontSizeMultiplier * 36}px`, marginRight: '15px' }}>⚡</span>
             Quick Actions
             <button
               onClick={() => {
@@ -434,13 +362,14 @@ const HomePage = () => {
               }}
               style={{
                 marginLeft: 'auto',
-                padding: '8px 15px',
-                backgroundColor: '#60a5fa',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer'
+                padding: '10px 20px',
+                backgroundColor: highContrast ? '#000000' : '#60a5fa',
+                color: highContrast ? '#ffffff' : 'white',
+                border: highContrast ? '2px solid #ffffff' : 'none',
+                borderRadius: '8px',
+                fontSize: `${fontSizeMultiplier * 16}px`,
+                cursor: 'pointer',
+                fontWeight: '600'
               }}
               tabIndex="0"
               aria-label="Jump to quick actions section"
@@ -448,10 +377,12 @@ const HomePage = () => {
               Jump
             </button>
           </h2>
+          
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '25px' 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '25px',
+            marginTop: '20px'
           }}>
             {quickActions.map(action => (
               <Link 
@@ -462,18 +393,24 @@ const HomePage = () => {
                 }}
                 style={{
                   display: 'block',
-                  padding: '35px',
-                  backgroundColor: action.bgColor,
-                  border: `4px solid ${action.color}`,
-                  borderRadius: '12px',
+                  padding: '30px',
+                  backgroundColor: highContrast ? '#f3f4f6' : action.bgColor,
+                  border: highContrast ? '4px solid #000000' : `4px solid ${action.color}`,
+                  borderRadius: '16px',
                   textDecoration: 'none',
-                  color: action.color,
-                  fontWeight: '600',
-                  fontSize: '22px',
+                  color: highContrast ? '#000000' : action.color,
+                  fontWeight: '700',
+                  fontSize: `${fontSizeMultiplier * 22}px`,
                   textAlign: 'center',
-                  transition: 'all 0.3s',
+                  transition: 'all 0.3s ease',
                   cursor: 'pointer',
-                  position: 'relative'
+                  position: 'relative',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                  minHeight: '180px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center'
                 }}
                 tabIndex="0"
                 role="button"
@@ -484,21 +421,46 @@ const HomePage = () => {
                     announce(`Navigate to ${action.title} page. ${action.description}`);
                   }
                 }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-5px)';
+                  e.target.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                }}
               >
-                <div style={{ fontSize: '44px', marginBottom: '18px' }}>{action.icon}</div>
-                <div>{action.title}</div>
-                <div style={{ fontSize: '18px', fontWeight: 'normal', marginTop: '12px' }}>
+                <div style={{ 
+                  fontSize: `${fontSizeMultiplier * 50}px`, 
+                  marginBottom: '20px',
+                  filter: highContrast ? 'grayscale(100%)' : 'none'
+                }}>
+                  {action.icon}
+                </div>
+                <div style={{ 
+                  marginBottom: '15px',
+                  fontSize: `${fontSizeMultiplier * 24}px`
+                }}>
+                  {action.title}
+                </div>
+                <div style={{ 
+                  fontSize: `${fontSizeMultiplier * 18}px`, 
+                  fontWeight: 'normal', 
+                  marginTop: '10px',
+                  opacity: '0.9'
+                }}>
                   {action.description}
                 </div>
                 <div style={{ 
                   position: 'absolute', 
-                  top: '12px', 
-                  right: '12px', 
-                  backgroundColor: action.color, 
+                  top: '15px', 
+                  right: '15px', 
+                  backgroundColor: highContrast ? '#000000' : action.color, 
                   color: 'white', 
-                  padding: '6px 10px', 
-                  borderRadius: '6px', 
-                  fontSize: '14px' 
+                  padding: '8px 12px', 
+                  borderRadius: '8px', 
+                  fontSize: `${fontSizeMultiplier * 14}px`,
+                  fontWeight: 'bold'
                 }}>
                   {action.shortcut}
                 </div>
@@ -507,28 +469,131 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Stats Overview */}
+        <section 
+          id="overview-section"
+          style={{ marginBottom: '40px' }}
+          aria-labelledby="overview-heading"
+          tabIndex="-1"
+        >
+          <h2 
+            id="overview-heading"
+            style={{ 
+              fontSize: `${fontSizeMultiplier * 30}px`, 
+              fontWeight: '700', 
+              color: highContrast ? '#000000' : '#1f2937',
+              marginBottom: '25px',
+              borderBottom: highContrast ? '4px solid #000000' : '4px solid #60a5fa',
+              paddingBottom: '10px',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+            tabIndex="0"
+          >
+            <span style={{ fontSize: `${fontSizeMultiplier * 36}px`, marginRight: '15px' }}>📊</span>
+            Today's Overview
+            <button
+              onClick={() => {
+                setActiveSection('overview');
+                announce('Overview section activated');
+              }}
+              style={{
+                marginLeft: 'auto',
+                padding: '10px 20px',
+                backgroundColor: highContrast ? '#000000' : '#60a5fa',
+                color: highContrast ? '#ffffff' : 'white',
+                border: highContrast ? '2px solid #ffffff' : 'none',
+                borderRadius: '8px',
+                fontSize: `${fontSizeMultiplier * 16}px`,
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+              tabIndex="0"
+              aria-label="Jump to overview section"
+            >
+              Jump
+            </button>
+          </h2>
+          
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+            gap: '25px' 
+          }}>
+            {statsCards.map((stat) => (
+              <div 
+                key={stat.id}
+                role="region"
+                aria-labelledby={`stat-title-${stat.id}`}
+                style={{
+                  padding: '30px',
+                  backgroundColor: highContrast ? '#f3f4f6' : stat.bgColor,
+                  border: highContrast ? '4px solid #000000' : `4px solid ${stat.color}`,
+                  borderRadius: '16px',
+                  textAlign: 'center',
+                  transition: 'transform 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                  minHeight: '160px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <div 
+                  id={`stat-title-${stat.id}`}
+                  style={{ 
+                    fontSize: `${fontSizeMultiplier * 40}px`, 
+                    fontWeight: '800', 
+                    color: highContrast ? '#000000' : stat.color, 
+                    marginBottom: '15px'
+                  }}
+                >
+                  {stat.value}
+                </div>
+                <div style={{ 
+                  color: highContrast ? '#000000' : stat.color, 
+                  fontWeight: '700', 
+                  fontSize: `${fontSizeMultiplier * 22}px`, 
+                  marginBottom: '10px'
+                }}>
+                  {stat.title}
+                </div>
+                <div style={{ 
+                  color: highContrast ? '#000000' : stat.color, 
+                  fontSize: `${fontSizeMultiplier * 16}px`,
+                  opacity: '0.9'
+                }}>
+                  {stat.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Upcoming Reminders */}
         <section 
           id="reminders-section"
-          style={{ marginBottom: '30px' }}
+          style={{ marginBottom: '40px' }}
           aria-labelledby="reminders-heading"
           tabIndex="-1"
         >
           <h2 
             id="reminders-heading"
             style={{ 
-              fontSize: '26px', 
-              fontWeight: '600', 
-              color: '#374151',
-              marginBottom: '20px',
-              borderBottom: '4px solid #60a5fa',
-              paddingBottom: '5px',
+              fontSize: `${fontSizeMultiplier * 30}px`, 
+              fontWeight: '700', 
+              color: highContrast ? '#000000' : '#1f2937',
+              marginBottom: '25px',
+              borderBottom: highContrast ? '4px solid #000000' : '4px solid #60a5fa',
+              paddingBottom: '10px',
               display: 'flex',
               alignItems: 'center'
             }}
             tabIndex="0"
           >
-            <span style={{ fontSize: '32px', marginRight: '10px' }}>🔔</span>
+            <span style={{ fontSize: `${fontSizeMultiplier * 36}px`, marginRight: '15px' }}>🔔</span>
             Upcoming Reminders
             <button
               onClick={() => {
@@ -537,13 +602,14 @@ const HomePage = () => {
               }}
               style={{
                 marginLeft: 'auto',
-                padding: '8px 15px',
-                backgroundColor: '#60a5fa',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer'
+                padding: '10px 20px',
+                backgroundColor: highContrast ? '#000000' : '#60a5fa',
+                color: highContrast ? '#ffffff' : 'white',
+                border: highContrast ? '2px solid #ffffff' : 'none',
+                borderRadius: '8px',
+                fontSize: `${fontSizeMultiplier * 16}px`,
+                cursor: 'pointer',
+                fontWeight: '600'
               }}
               tabIndex="0"
               aria-label="Jump to reminders section"
@@ -565,45 +631,55 @@ const HomePage = () => {
                   aria-labelledby={`reminder-title-${reminder.id}`}
                   style={{
                     padding: '30px',
-                    backgroundColor: '#e0f2fe',
-                    border: '4px solid #0ea5e9',
-                    borderRadius: '12px',
+                    backgroundColor: highContrast ? '#f3f4f6' : '#e0f2fe',
+                    border: highContrast ? '4px solid #000000' : '4px solid #0ea5e9',
+                    borderRadius: '16px',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
                   }}
                 >
                   <div id={`reminder-title-${reminder.id}`}>
                     <h3 style={{ 
-                      fontSize: '22px', 
-                      fontWeight: '600', 
-                      color: '#0284c7',
-                      marginBottom: '10px'
+                      fontSize: `${fontSizeMultiplier * 26}px`, 
+                      fontWeight: '700', 
+                      color: highContrast ? '#000000' : '#0284c7',
+                      marginBottom: '12px'
                     }}>
                       {reminder.medicineName}
                     </h3>
-                    <p style={{ color: '#0284c7', fontSize: '18px', marginBottom: '10px' }}>
+                    <p style={{ 
+                      color: highContrast ? '#000000' : '#0284c7', 
+                      fontSize: `${fontSizeMultiplier * 20}px`, 
+                      marginBottom: '12px'
+                    }}>
                       <strong>Dosage:</strong> {reminder.dosage}
                     </p>
-                    <p style={{ color: '#0284c7', fontWeight: '600', fontSize: '20px' }}>
+                    <p style={{ 
+                      color: highContrast ? '#000000' : '#0284c7', 
+                      fontWeight: '700', 
+                      fontSize: `${fontSizeMultiplier * 22}px`
+                    }}>
                       <strong>Due Time:</strong> {new Date(reminder.nextDue).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <button
                       onClick={() => announce(`Reminder for ${reminder.medicineName} at ${new Date(reminder.nextDue).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}. ${reminder.dosage}`)}
                       style={{
-                        backgroundColor: '#0ea5e9',
+                        backgroundColor: highContrast ? '#000000' : '#0ea5e9',
                         color: 'white',
-                        border: '3px solid #0284c7',
-                        borderRadius: '10px',
-                        width: '60px',
-                        height: '60px',
+                        border: highContrast ? '3px solid #ffffff' : '3px solid #0284c7',
+                        borderRadius: '12px',
+                        width: '70px',
+                        height: '70px',
                         cursor: 'pointer',
-                        fontSize: '24px',
+                        fontSize: `${fontSizeMultiplier * 28}px`,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        fontWeight: 'bold'
                       }}
                       tabIndex="0"
                       aria-label={`Read reminder details for ${reminder.medicineName}`}
@@ -613,15 +689,16 @@ const HomePage = () => {
                     <Link
                       to="/reminders"
                       style={{
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: highContrast ? '#000000' : '#3b82f6',
                         color: 'white',
-                        border: '3px solid #2563eb',
-                        borderRadius: '10px',
-                        padding: '10px 15px',
-                        fontSize: '16px',
+                        border: highContrast ? '3px solid #ffffff' : '3px solid #2563eb',
+                        borderRadius: '12px',
+                        padding: '12px 20px',
+                        fontSize: `${fontSizeMultiplier * 18}px`,
                         textAlign: 'center',
                         textDecoration: 'none',
-                        fontWeight: '600'
+                        fontWeight: '700',
+                        minWidth: '120px'
                       }}
                       tabIndex="0"
                     >
@@ -633,27 +710,40 @@ const HomePage = () => {
             </div>
           ) : (
             <div style={{
-              padding: '35px',
+              padding: '40px',
               textAlign: 'center',
-              backgroundColor: '#f9fafb',
-              border: '4px dashed #d1d5db',
-              borderRadius: '12px'
+              backgroundColor: highContrast ? '#f3f4f6' : '#f9fafb',
+              border: highContrast ? '4px dashed #000000' : '4px dashed #d1d5db',
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
             }}>
-              <div style={{ fontSize: '22px', color: '#6b7280' }}>No upcoming reminders</div>
-              <p style={{ color: '#6b7280', marginTop: '12px' }}>Set medication reminders in the Reminders section</p>
+              <div style={{ 
+                fontSize: `${fontSizeMultiplier * 28}px`, 
+                color: highContrast ? '#000000' : '#6b7280',
+                marginBottom: '15px'
+              }}>
+                🎉 No upcoming reminders
+              </div>
+              <p style={{ 
+                color: highContrast ? '#000000' : '#6b7280', 
+                marginTop: '15px',
+                fontSize: `${fontSizeMultiplier * 20}px`
+              }}>
+                Great job! You're all caught up with your medication schedule
+              </p>
               <Link
                 to="/reminders"
                 style={{
                   display: 'inline-block',
-                  marginTop: '18px',
-                  padding: '15px 28px',
-                  backgroundColor: '#3b82f6',
+                  marginTop: '25px',
+                  padding: '15px 30px',
+                  backgroundColor: highContrast ? '#000000' : '#3b82f6',
                   color: 'white',
-                  border: '3px solid #2563eb',
-                  borderRadius: '10px',
+                  border: highContrast ? '3px solid #ffffff' : '3px solid #2563eb',
+                  borderRadius: '12px',
                   textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: '18px'
+                  fontWeight: '700',
+                  fontSize: `${fontSizeMultiplier * 20}px`
                 }}
                 tabIndex="0"
               >
@@ -665,55 +755,56 @@ const HomePage = () => {
 
         {/* Accessibility Features */}
         <section style={{ 
-          backgroundColor: '#e0f2fe', 
-          border: '4px solid #0ea5e9',
-          borderRadius: '12px', 
+          backgroundColor: highContrast ? '#f3f4f6' : '#e0f2fe', 
+          border: highContrast ? '4px solid #000000' : '4px solid #0ea5e9',
+          borderRadius: '16px', 
           padding: '35px',
-          marginBottom: '25px'
+          marginBottom: '30px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
         }}>
           <h2 
             style={{ 
-              fontSize: '24px', 
-              fontWeight: '600', 
-              color: '#0284c7',
-              marginBottom: '18px',
+              fontSize: `${fontSizeMultiplier * 28}px`, 
+              fontWeight: '700', 
+              color: highContrast ? '#000000' : '#0284c7',
+              marginBottom: '25px',
               display: 'flex',
               alignItems: 'center'
             }}
             tabIndex="0"
           >
-            <span style={{ fontSize: '32px', marginRight: '10px' }}>♿</span>
+            <span style={{ fontSize: `${fontSizeMultiplier * 36}px`, marginRight: '15px' }}>♿</span>
             Accessibility Features
           </h2>
           <ul style={{ 
-            color: '#0284c7',
-            paddingLeft: '30px',
-            fontSize: '18px',
-            lineHeight: '1.8'
+            color: highContrast ? '#000000' : '#0284c7',
+            paddingLeft: '35px',
+            fontSize: `${fontSizeMultiplier * 20}px`,
+            lineHeight: '2.0'
           }}>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Keyboard Navigation:</strong> Press Tab to move between interactive elements, Enter/Space to activate
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>⌨️ Keyboard Navigation:</strong> Press Tab to move between interactive elements, Enter/Space to activate
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Screen Reader:</strong> All elements properly labeled with ARIA attributes for optimal screen reader experience
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>🔊 Screen Reader:</strong> All elements properly labeled with ARIA attributes for optimal screen reader experience
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>High Contrast:</strong> High contrast color scheme with clear visual separation between elements
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>🎨 High Contrast:</strong> High contrast color scheme with clear visual separation between elements
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Large Text:</strong> Sufficiently large fonts (minimum 18px) with appropriate spacing for easy reading
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>🔤 Large Text:</strong> Sufficiently large fonts (minimum 20px) with appropriate spacing for easy reading
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Focus Indicators:</strong> Clear, visible focus indicators (4px borders) for all interactive elements
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>🎯 Focus Indicators:</strong> Clear, visible focus indicators (6px borders) for all interactive elements
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Audio Feedback:</strong> Audio descriptions available for all important information
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>📢 Audio Feedback:</strong> Audio descriptions available for all important information
             </li>
-            <li style={{ marginBottom: '15px' }} tabIndex="0">
-              <strong>Keyboard Shortcuts:</strong> Alt+O (Overview), Alt+Q (Quick Actions), Alt+R (Reminders), Alt+E (Emergency)
+            <li style={{ marginBottom: '20px' }} tabIndex="0">
+              <strong>⌨️ Keyboard Shortcuts:</strong> Alt+O (Overview), Alt+Q (Quick Actions), Alt+R (Reminders), Alt+E (Emergency)
             </li>
             <li tabIndex="0">
-              <strong>Skip Links:</strong> Use skip links to navigate directly to main content sections
+              <strong>⏩ Skip Links:</strong> Use skip links to navigate directly to main content sections
             </li>
           </ul>
         </section>
@@ -723,49 +814,56 @@ const HomePage = () => {
           id="emergency-section"
           style={{ 
             padding: '35px', 
-            backgroundColor: '#fef2f2', 
-            border: '4px solid #fecaca',
-            borderRadius: '12px' 
+            backgroundColor: highContrast ? '#f3f4f6' : '#fef2f2', 
+            border: highContrast ? '4px solid #000000' : '4px solid #fecaca',
+            borderRadius: '16px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
           }}
           tabIndex="-1"
         >
           <h2 
             style={{ 
-              fontSize: '24px', 
-              fontWeight: '600', 
-              color: '#b91c1c',
-              marginBottom: '18px',
+              fontSize: `${fontSizeMultiplier * 28}px`, 
+              fontWeight: '700', 
+              color: highContrast ? '#000000' : '#b91c1c',
+              marginBottom: '25px',
               display: 'flex',
               alignItems: 'center'
             }}
             tabIndex="0"
           >
-            <span style={{ fontSize: '32px', marginRight: '10px' }}>🚨</span>
+            <span style={{ fontSize: `${fontSizeMultiplier * 36}px`, marginRight: '15px' }}>🚨</span>
             Emergency Information
           </h2>
           <ul style={{ 
-            color: '#b91c1c',
-            paddingLeft: '30px',
-            fontSize: '18px',
-            lineHeight: '1.8'
+            color: highContrast ? '#000000' : '#b91c1c',
+            paddingLeft: '35px',
+            fontSize: `${fontSizeMultiplier * 20}px`,
+            lineHeight: '2.0'
           }}>
-            <li style={{ marginBottom: '12px' }} tabIndex="0">
-              <strong>Emergency Number:</strong> Call 911 or your local emergency number immediately
+            <li style={{ marginBottom: '15px' }} tabIndex="0">
+              <strong>📞 Emergency Number:</strong> Call 911 or your local emergency number immediately
             </li>
-            <li style={{ marginBottom: '12px' }} tabIndex="0">
-              <strong>Medication List:</strong> Keep an updated list of all medications for emergency responders
+            <li style={{ marginBottom: '15px' }} tabIndex="0">
+              <strong>📋 Medication List:</strong> Keep an updated list of all medications for emergency responders
             </li>
-            <li style={{ marginBottom: '12px' }} tabIndex="0">
-              <strong>Pharmacy Contact:</strong> Have your pharmacy's phone number readily available
+            <li style={{ marginBottom: '15px' }} tabIndex="0">
+              <strong>🏪 Pharmacy Contact:</strong> Have your pharmacy's phone number readily available
             </li>
-            <li style={{ marginBottom: '12px' }} tabIndex="0">
-              <strong>Doctor's Number:</strong> Contact your healthcare provider for non-emergency concerns
+            <li style={{ marginBottom: '15px' }} tabIndex="0">
+              <strong>👨‍⚕️ Doctor's Number:</strong> Contact your healthcare provider for non-emergency concerns
             </li>
             <li tabIndex="0">
-              <strong>Allergy Information:</strong> Inform emergency responders of any known allergies
+              <strong>⚠️ Allergy Information:</strong> Inform emergency responders of any known allergies
             </li>
           </ul>
         </section>
+
+        {/* Emergency Call Button */}
+        <EmergencyButton 
+          helplineNumber="+1-911"
+          displayNumber="911"
+        />
       </div>
     </div>
   );
